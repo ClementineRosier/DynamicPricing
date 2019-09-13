@@ -1,46 +1,44 @@
 import pandas as pd
 import numpy as np
 import scipy
-from scipy.stats import truncnorm, invgamma
+from scipy.stats import beta
 import math
 
 
-class SimpleBandit():
+class BinomialBandit():
     """
     Implementation of a classic multi armed bandit problem for a price selection problem.
-    Each arm is set to be a given price : the model estimates the reward probability for each arm
-    We model reward probability as a gaussian distribution with parameters (mu, sigma)
-    P(mu|sigma) ~ Norm(alpha, sigma * beta)
-    P(sigma) ~ InvGamma(a_0, b_0)
+    Each arm represent a different price. If arm n (corresponding to price p) is chosen
+    then price p is presented to customer. Bandit receives reward r = p * 1_buy=1 
+    
+    Buying probability is modeled as a bernouilli distribution : buy ~ B(theta)
+    We assume beta prior for theta : theta ~ beta(alpha, beta)
+    Following that modelisation : P(theta | buy) = P(buy | theta) * P(theta)
+    Posterior computation : 
+        - alpha_n = alpha_0 + sum(buy) = alpha_0 + sum(positive_occurrences)
+        - beta_n = beta_0 + n - sum(buy)  = beta_0 + sum(negative_occurrences)
 
-    Following that modelisation : P(mu, sigma | R) ~= P(R | mu, sigma) * P(mu | sigma) * P(sigma)
-
-    Action selection via Thompson sampling
+    Action selection policy : Thompson sampling
 
     Args : 
         k_p(list) : list of size k (number of arms) defining the price for each arm
         alpha_0 (list) : list of size k (number of arms)
         beta_0 (list) : list of size k (number of arms)
-        a_0 (list): list of size k (number of arms)
-        b_0 (list): list of size k (number of arms)
     """
 
-    def __init__(self, k_p, alpha_0, beta_0, a_0, b_0):
+    def __init__(self, k_p, alpha_0, beta_0):
 
-        assert len(k_p) == len(alpha_0) == len(beta_0) == len(a_0) == len(b_0), "k_mu, k_sigman and k_p must all be same length" 
+        assert len(k_p) == len(alpha_0) == len(beta_0), "k_mu, k_sigman and k_p must all be same length" 
         self.k_p = k_p
         self.k = len(self.k_p)
         self.alpha_0 = np.array(alpha_0)
         self.beta_0 = np.array(beta_0)
-        self.a_0 = np.array(a_0)
-        self.b_0 = np.array(b_0)
+        self.n_pos = np.repeat(0, self.k)
         self.n_obs = np.repeat(0, self.k) # number of trials for each arm
 
-        self.alpha_n = self.alpha_0
-        self.a_n = np.array(self.a_0)
-        self.b_n = np.array(self.b_0)
-
-        print(f"SimpleBandit model instanciated with {self.k} arms.")
+        self.alpha_n = np.array(self.alpha_0)
+        self.beta_n = np.array(self.beta_0)
+        print(f"BinomialBandit model instanciated with {self.k} arms.")
 
 
     def update(self, k, reward):
@@ -49,18 +47,12 @@ class SimpleBandit():
 
         Args : 
             k (int) : index of the arm played
-            reward (float) : value of the observed reward
+            buy (int) : 1 if reward > 0, else 0
         """
-        n = self.n_obs[k]
-        beta_0 = self.beta_0[k] 
-        alpha_0 = self.alpha_0[k]
-        a_0 = self.a_0[k]
-        b_0 = self.b_0[k]
-
-        self.alpha_n[k] = 1/ ( n+1 / beta_0) * ( reward + 1/beta_0 * alpha_0)
-        self.a_n[k] = n + a_0
-        self.b_n[k] = 1 /self.a_n[k] * ( (reward - alpha_0 )**2 / (1 + beta_0) +  a_0/b_0)
-
+        self.n_obs[k] += 1
+        self.n_pos[k] += int(reward > 0)
+        self.alpha_n[k] = self.alpha_0[k] + self.n_pos[k]
+        self.beta_n[k] = self.beta_0[k] + self.n_obs[k] - self.n_pos[k]
 
     def thompson_sampling(self):
         """
@@ -68,11 +60,11 @@ class SimpleBandit():
         Return : 
             int : argmax over sampling
         """
-        # Sample sigma
-        sigma = self.b_n * invgamma.rvs(self.a_n)
-        # Sample mu
-        mu = np.random.normal(self.alpha_n, sigma * self.beta_0)
-        return np.argmax(mu)
+        # Sample theta
+        theta = beta.rvs(self.alpha_n, self.beta_n)
+        # Compute expected reward for each arm
+        exp_r = theta * self.k_p
+        return np.argmax(exp_r)
 
 
     def chose_action(self, method = "thompson", force_action = None):
