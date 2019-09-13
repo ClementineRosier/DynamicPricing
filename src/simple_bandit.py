@@ -37,8 +37,8 @@ class SimpleBandit():
         self.n_obs = np.repeat(0, self.k) # number of trials for each arm
 
         self.alpha_n = self.alpha_0
-        self.a_n = self.a_0
-        self.b_n = self.b_0
+        self.a_n = np.array(self.a_0)
+        self.b_n = np.array(self.b_0)
 
         print(f"SimpleBandit model instanciated with {self.k} arms.")
 
