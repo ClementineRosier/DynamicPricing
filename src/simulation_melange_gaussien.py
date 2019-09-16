@@ -4,10 +4,12 @@ import scipy
 from scipy.stats import truncnorm
 import math
 
-class GMixtureSimulation():
+class GSumSimulation():
     """
     Simple demand simulation class based on a sum of independant normal variables
     nb: possibilité de mettre des poids sur les normales ou d'avoir plus de normale
+    
+    A VERIFIER AU NIVEAU DES PROPRIETES DE LA LOI
 
     Args : 
         mu_1(float) : mean of the first normal
@@ -20,17 +22,17 @@ class GMixtureSimulation():
         self.sigma_1=sigma_1
         self.mu_2=mu_2
         self.sigma_2=sigma_2
-        self.gm_mu, self.gm_sigma = self.gm()
+        self.gs_mu, self.gs_sigma = self.gs()
         self.optimal_price = self.get_optimal_price()
         self.max_revenue = self.compute_revenue(self.optimal_price)
                
-    def gm(self):
+    def gs(self):
         """
         Compute mean and std for truncated normal
         """
-        gm_mu = self.mu_1 +self.mu_2
-        gm_sigma = self.sigma_1 +self.sigma_2
-        return gm_mu, gm_sigma
+        gs_mu = self.mu_1 +self.mu_2
+        gs_sigma = self.sigma_1 +self.sigma_2
+        return gs_mu, gs_sigma
 
     def get_optimal_price(self):
         """
