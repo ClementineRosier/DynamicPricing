@@ -39,11 +39,11 @@ class GSumSimulation():
         Computes the optimal price given the underlying distribution
         (optimal price is the price that maximizes revenue)
         """
-        res = scipy.optimize.minimize(self.compute_revenue, self.mu, method='nelder-mead')
+        res = scipy.optimize.minimize(self.compute_revenue, self.gs_mu, method='nelder-mead')
         return res.x[0]
 
     def compute_revenue(self, p):
-        return -p*(1-scipy.stats.norm.cdf(p,loc = self.gm_mu,scale=slef.gm_sigma))
+        return -p*(1-scipy.stats.norm.cdf(p,loc = self.gS_mu,scale=slef.gm_sigma))
 
     def _simulate(self):
         """
