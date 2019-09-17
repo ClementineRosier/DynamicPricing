@@ -43,7 +43,7 @@ class GSumSimulation():
         return res.x[0]
 
     def compute_revenue(self, p):
-        return -p*(1-scipy.stats.norm.cdf(p,loc = self.gs_mu,scale=slef.gm_sigma))
+        return -p*(1-scipy.stats.norm.cdf(p,loc = self.gs_mu,scale=self.gs_sigma))
 
     def _simulate(self):
         """
