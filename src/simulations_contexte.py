@@ -40,10 +40,10 @@ class ContextSimulation():
 		Computes the optimal price given the underlying distribution for a given context X
 		(optimal price is the price that maximizes revenue)
 		"""
-		res = scipy.optimize.minimize(self.compute_revenue, self.mu_e, method='nelder-mead')
+		res = scipy.optimize.minimize(self.compute_revenue,self.context, self.mu_e, method='nelder-mead')
 		return res.x[0]
 
-	def compute_revenue(self, X,p):
+	def compute_revenue(self,p):
 		#compute expected revenue for a given context ie E(R)=p*E(A=1|X)=p*P(p-BX<=V) with V ~N(mu_e,sigma_e)
 		return -p*np.random.cdf(p-self.self.context[0],loc=self.mu_e,scale=sigma_e)
 
