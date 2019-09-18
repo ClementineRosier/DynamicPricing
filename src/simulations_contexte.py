@@ -64,7 +64,7 @@ class ContextSimulation():
 		Hidden method for random sampling of the context and the individual demand
 		"""
 		s = -1
-		context=self._simulate_context()
+		self._simulate_context()
 		while s < 0:
 			s_i = np.random.normal(self.mu_e,self.sigma_e,1)
 			s=s_i +self.context[0]
