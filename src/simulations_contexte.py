@@ -17,7 +17,7 @@ class ContextSimulation():
 		self.n=n
 		self.mu_e=mu_e
 		self.sigma_e=sigma_e
-		self.context=np.repeat(0,len(beta_c) + len(beta_d))
+		self.context=np.repeat(0,len(beta_c) + len(beta_d),2)
 		self.mu, self.sigma = self.mean_var()
 		self.optimal_price = self.get_optimal_price()
 		self.max_revenue = self.compute_revenue(self.optimal_price)
@@ -35,7 +35,7 @@ class ContextSimulation():
 		sigma =var_context+self.sigma_e
 		return mu, sigma
 
-	def get_optimal_price(self,X):
+	def get_optimal_price(self):
 		"""
 		Computes the optimal price given the underlying distribution for a given context X
 		(optimal price is the price that maximizes revenue)
@@ -45,7 +45,7 @@ class ContextSimulation():
 
 	def compute_revenue(self, X,p):
 		#compute expected revenue for a given context ie E(R)=p*E(A=1|X)=p*P(p-BX<=V) with V ~N(mu_e,sigma_e)
-		return -p*np.random.cdf(p-self.beta*X,loc=self.mu_e,scale=sigma_e)
+		return -p*np.random.cdf(p-self.self.context[0],loc=self.mu_e,scale=sigma_e)
 
 	def _simulate_context(self):
 
@@ -55,7 +55,7 @@ class ContextSimulation():
 		s_d =[np.random.random_integers(a[i],self.n[i]) for i in range(len(self.n))]
 		context_cat=np.append(s_c,s_d)
 		context_value=np.append(self.beta_c*s_c,[self.beta_d[i,s_d[i]-1] for i in range(len(s_d))])
-		return (context_value,context_cat)
+		return self.context=(context_value,context_cat)
 
 
 	def _simulate(self):
