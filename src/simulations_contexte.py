@@ -9,10 +9,9 @@ class ContextSimulation():
 	Demand simulation for contextual bandit v=BX +E
 	with X=(X_c X_d) and X_c ~G() ;X_d ~U() and ? E~simple simul ?
 	"""
-
-	def __init__(self,beta_c,mu_c,sigma_c,beta_d,n,mu_e,sigma_e):
-		self.beta_c=beta_c
-		self.mu_c=mu_c
+    def __init__(self,beta_c,mu_c,sigma_c,beta_d,n,mu_e,sigma_e):
+        self.beta_c=beta_c
+	    self.mu_c=mu_c
 		self.sigma_c=sigma_c
 		self.beta_d = beta_d #array with impact of each category
 		self.n=n
@@ -20,7 +19,7 @@ class ContextSimulation():
 		self.sigma_e=sigma_e
 		self.context=np.repeat(0,len(beta_c) + len(beta_d))
 		self.mu, self.sigma = self.mean_var()
-        self.optimal_price = self.get_optimal_price()
+		self.optimal_price = self.get_optimal_price()
         self.max_revenue = self.compute_revenue(self.optimal_price)
                
     def mean_var(self):
@@ -53,10 +52,10 @@ class ContextSimulation():
     	s_c=np.random.normal(self.mu_c,self.sigma_c,len(self.mu_c))
     	
     	a=np.repeat(1,len(self.n))
-    	cat =[np.random.random_integers(a[i],self.n[i]) for i in range(len(self.n))]
-    	s_d =[self.beta_d[i,cat[i]-1] for i in range(len(cat))]
-    	context=np.append(s_c,s_d)
-    	return context
+    	s_d =[np.random.random_integers(a[i],self.n[i]) for i in range(len(self.n))]
+    	context_cat=np.append(s_c,s_d)
+    	context_value=np.append(self.beta_c*s_c,[self.beta_d[i,s_d[i]-1] for i in range(len(s_d))])
+    	return (context_value,context_cat)
 
 
     def _simulate(self):
@@ -64,15 +63,15 @@ class ContextSimulation():
         Hidden method for random sampling of the context and the individual demand
         """
         s = -1
-        context=_simulate_context(self)
+        context=self._simulate_context()
         while s < 0:
         	s_i = np.random.normal(self.mu_e,self.sigma_e,1)
-            s=s_i +beta*self.context
-        return context,s
+            s=s_i +beta*self.context[0]
+        return context[1],s
 
     def evaluate(self,p):
         """
         Return bool : True if buy False either
         """
-        sample = self._simulate()
+        sample = self._simulate()[1]
         return bool(sample >= p)
