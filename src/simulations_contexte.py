@@ -68,7 +68,7 @@ class ContextSimulation():
 		while s < 0:
 			s_i = np.random.normal(self.mu_e,self.sigma_e,1)
 			s=s_i +self.context[0]
-		return context[1],s
+		return self.context[1],s
 
 	def evaluate(self,p):
 		"""
