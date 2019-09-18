@@ -41,7 +41,7 @@ class GMixSimulation():
         return res.x[0]
 
     def compute_revenue(self, p):
-        return -p*(1-(self.weight*scipy.stats.norm.cdf(p,loc=self.mu_1,scale=self.sigma_1)-(1-self.weight)*scipy.stats.norm.cdf(p,loc=self.mu_2,scale=self.sigma_2)))
+        return -p*(1-(self.weight*scipy.stats.norm.cdf(p,loc=self.mu_1,scale=self.sigma_1)+(1-self.weight)*scipy.stats.norm.cdf(p,loc=self.mu_2,scale=self.sigma_2)))
 
     def _simulate(self):
         """
