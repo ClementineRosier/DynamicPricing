@@ -45,7 +45,7 @@ class ContextSimulation():
 
 	def compute_revenue(self,p):
 		#compute expected revenue for a given context ie E(R)=p*E(A=1|X)=p*P(p-BX<=V) with V ~N(mu_e,sigma_e)
-		return -p*scipy.stats.norm.cdf(p-self.self.context[0],loc=self.mu_e,scale=sigma_e)
+		return -p*scipy.stats.norm.cdf(p-self.context[0],loc=self.mu_e,scale=self.sigma_e)
 
 	def _simulate_context(self):
 
