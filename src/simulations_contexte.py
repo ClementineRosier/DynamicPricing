@@ -19,8 +19,8 @@ class ContextSimulation():
 		self.sigma_e=sigma_e
 		self.context=[np.repeat(0,len(beta_c) + len(beta_d)),np.repeat(0,len(beta_c) + len(beta_d))]
 		self.mu, self.sigma = self.mean_var()
-		self.optimal_price = self.get_optimal_price()
-		self.max_revenue = self.compute_revenue(self.optimal_price)
+		 #self.optimal_price = self.get_optimal_price()
+		#self.max_revenue = self.compute_revenue(self.optimal_price)
 			   
 	def mean_var(self):
 		"""
