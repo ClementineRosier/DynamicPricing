@@ -7,15 +7,18 @@ import math
 class ContextSimulation():
 	"""
 	Demand simulation for contextual bandit v=BX +E
-	with X=(X_c X_d) and X_c ~G() ;X_d ~B() and ? E~simple simul ?
+	with X=(X_c X_d) and X_c ~G() ;X_d ~U() and ? E~simple simul ?
 	"""
 
-	def __init__(self,beta,mu_c,sigma_c,n,theta):
-		self.beta=beta
+	def __init__(self,beta_c,mu_c,sigma_c,beta_d,n,mu_e,sigma_e):
+		self.beta_c=beta_c
 		self.mu_c=mu_c
 		self.sigma_c=sigma_c
+		self.beta_d = beta_d #array with impact of each category
 		self.n=n
-		self.theta
+		self.mu_e=mu_e
+		self.sigma_e=sigma_e
+		self.context=np.repeat(0,len(beta_c) + len(beta_d))
 		self.mu, self.sigma = self.mean_var()
         self.optimal_price = self.get_optimal_price()
         self.max_revenue = self.compute_revenue(self.optimal_price)
@@ -24,33 +27,48 @@ class ContextSimulation():
         """
         Compute mean and var for the demand
         """
-        means=np.append(self.mu_c,self.theta*(self.n-1))
-        vars=np.append(self.sigma_c,self.theta*(1-self.theta)*(self.n-1))
-        mu = np.sum(beta*means)
-        sigma =np.sum(beta**2*vars)
+        theta=1/len(self.n)
+        mean_d=np.sum((self.beta_d.T*theta).T,axis=1)
+        mean_context=np.append(self.beta_c*self.mu_c,mean_d)
+        var_d = np.sum((self.beta_d.T**2*theta).T,axis=1)
+        var_context=np.append(self.beta_c**2*self.sigma_c,var_d)
+        mu = mean_context+self.mu_e
+        sigma =var_context+self.sigma_e
         return mu, sigma
 
-    def get_optimal_price(self):
+    def get_optimal_price(self,X):
         """
-        Computes the optimal price given the underlying distribution
+        Computes the optimal price given the underlying distribution for a given context X
         (optimal price is the price that maximizes revenue)
         """
-        res = scipy.optimize.minimize(self.compute_revenue, self.mu, method='nelder-mead')
+        res = scipy.optimize.minimize(self.compute_revenue, self.mu_e, method='nelder-mead')
         return res.x[0]
 
-    def compute_revenue(self, p):
-    	#to be updated
-        return -(p/(self.mu**2*scipy.stats.norm.cdf(self.mu/self.sigma,loc=0, scale=1))*scipy.stats.norm.cdf((-p+self.mu)/self.sigma, loc=0, scale=1))
+    def compute_revenue(self, X,p):
+    	#compute expected revenue for a given context ie E(R)=p*E(A=1|X)=p*P(p-BX<=V) with V ~N(mu_e,sigma_e)
+        return -p*np.random.cdf(p-self.beta*X,loc=self.mu_e,scale=sigma_e)
+
+    def _simulate_context(self):
+
+    	s_c=np.random.normal(self.mu_c,self.sigma_c,len(self.mu_c))
+    	
+    	a=np.repeat(1,len(self.n))
+    	cat =[np.random.random_integers(a[i],self.n[i]) for i in range(len(self.n))]
+    	s_d =[self.beta_d[i,cat[i]-1] for i in range(len(cat))]
+    	context=np.append(s_c,s_d)
+    	return context
+
 
     def _simulate(self):
-    	#to be updated
         """
-        Hidden method for random sampling
+        Hidden method for random sampling of the context and the individual demand
         """
         s = -1
+        context=_simulate_context(self)
         while s < 0:
-            s=np.random.normal( self.mu,self.sigma, 1)
-        return s
+        	s_i = np.random.normal(self.mu_e,self.sigma_e,1)
+            s=s_i +beta*self.context
+        return context,s
 
     def evaluate(self,p):
         """

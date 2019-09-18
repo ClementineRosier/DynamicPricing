@@ -50,7 +50,7 @@ class GMixSimulation():
         s = -1
         while s < 0:
             w=np.random.binomial(1,self.weight)
-            s=w*np.random.normal( self.mu_1,self.sigma_1, 1)+(1-w)np.random.normal( self.mu_2,self.sigma_2, 1)
+            s=w*np.random.normal( self.mu_1,self.sigma_1, 1)+(1-w)*np.random.normal( self.mu_2,self.sigma_2, 1)
         return s
 
     def evaluate(self,p):
