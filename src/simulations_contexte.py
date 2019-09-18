@@ -55,7 +55,8 @@ class ContextSimulation():
 		s_d =[np.random.random_integers(a[i],self.n[i]) for i in range(len(self.n))]
 		context_cat=np.append(s_c,s_d)
 		context_value=np.append(self.beta_c*s_c,[self.beta_d[i,s_d[i]-1] for i in range(len(s_d))])
-		return self.context=[context_value,context_cat]
+		self.context=[context_value,context_cat]
+		return self.context
 
 
 	def _simulate(self):
