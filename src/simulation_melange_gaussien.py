@@ -20,7 +20,7 @@ class GMixSimulation():
         self.mu_2=mu_2
         self.sigma_2=sigma_2
         self.weight =weight
-        self.gs_mu, self.gs_sigma = self.gm()
+        self.gm_mu, self.gm_sigma = self.gm()
         self.optimal_price = self.get_optimal_price()
         self.max_revenue = self.compute_revenue(self.optimal_price)
                
