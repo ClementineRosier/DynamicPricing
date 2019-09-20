@@ -28,7 +28,7 @@ class ContextBandit():
         q_0 (list): array of size size_context with initial variance of the weight of each features
     """
 
-    def __init__(self,k_p,size_context,m_0=numpy.zeros(shape=(,2)),q_0):
+    def __init__(self,k_p,size_context,m_0=np.zeros(shape=(len(k_p),size_context)),q_0):
         #assess size_context==len(m)==len(q)
         self.k_p =k_p   
         self.k = len(self.k_p)    
