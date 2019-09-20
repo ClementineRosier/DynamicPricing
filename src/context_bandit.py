@@ -28,7 +28,7 @@ class ContextBandit():
         q_0 (list): array of size size_context with initial variance of the weight of each features
     """
 
-    def __init__(self,k_p,size_context,m_0=np.zeros(shape=(len(k_p),size_context)),q_0):
+    def __init__(self,k_p,size_context,m_0,q_0):
         #assess size_context==len(m)==len(q)
         self.k_p =k_p   
         self.k = len(self.k_p)    
@@ -36,23 +36,20 @@ class ContextBandit():
         self.m_0=m_0
         self.q_0=q_0
 
-        self.context=[np.repeat(0,len(size_context)),np.repeat(0,len(size_context))]
-        
         self.n_obs = np.repeat(0, self.k) # number of trials for each arm
-
         self.m_n = np.array(self.m_0)
         self.q_n = np.array(self.q_0)
 
         print(f"ContextBandit model instanciated with {self.k} arms.")
 
-    def get_weight(self, weight):
+    def get_objective_function(self, weight):
         y=int(reward > 0)
         q=self.q[k]
         m=self.m[k]
         context = self.context
         return 0.5*q*(w-m)+math.log(1+math.exp(-y*np.dot(w.T,context)))
     
-    def update(self, k, reward):
+    def update(self, reward, context):
         """
         Update priors for arm k given observation of reward 
 
@@ -60,28 +57,37 @@ class ContextBandit():
             k (int) : index of the arm played
             reward (float) : value of the observed reward
         """
+        k = self.action
+        y = int(reward > 0)
+        q = self.q_n[k]
+        m = self.m_n[k]
 
-        min = scipy.optimize.minimize(self.get_weight, self.w[k], method='nelder-mead')
-        w=min.x
-        self.m[k]=min.x
-        self.q[k]=self.q[k] +self.context**2*np.linalg.inv(1+math.exp(-np.dot(w.T,self.context)))*(1-np.linalg.inv(1+math.exp(-np.dot(w.T,self.context))))
+        def objective(w):
+            return 0.5*sum(q*(w-m))**2+math.log(1+math.exp(-y*np.dot(w.T,context)))
+
+        initial_value = np.random.normal(m,q)
+        minimum = scipy.optimize.minimize(objective, initial_value, method='nelder-mead')
+        # Update m and q
+        self.m_n[k] = minimum.x
+        z = minimum.x
+        self.q_n[k]= q + context**2*1/(1+np.exp(-np.dot(z.T, context)))*(1-1/(1+np.exp(-np.dot(z.T, context))))
         
 
 
-    def thompson_sampling(self):
+    def thompson_sampling(self,context):
         """
         Random sampling over each arm's probability distribution
         Return : 
             int : argmax over sampling
         """
         # Sample weight
-        self.w=np.random.normal(self.m,self.q)
+        w = np.random.normal(self.m_n,self.q_n)
         # compute theta*p for each arm
-        exp_r = p*(1+math.exp(-math.dot(w,context.T)))
+        exp_r = self.k_p*(1+np.exp(-np.dot(w,context.T)))
         return np.argmax(exp_r)
 
 
-    def chose_action(self, method = "thompson", force_action = None):
+    def chose_action(self, context, method = "thompson", force_action = None):
         """
         Choose an action
         Args : 
@@ -100,7 +106,7 @@ class ContextBandit():
         
         assert method is not None, "Provide a selection method" 
         if method == "thompson":
-            self.action = self.thompson_sampling()
+            self.action = self.thompson_sampling(context)
         elif method == "random":
             self.action = np.random.randint(0,self.k)
         return 
