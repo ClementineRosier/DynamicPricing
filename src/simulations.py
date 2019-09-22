@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import scipy
-from scipy.stats import truncnorm
+from scipy.stats import norm
 import math
 
 class SimpleSimulation():
@@ -23,8 +23,11 @@ class SimpleSimulation():
         """
         Compute mean and std for truncated normal
         """
-        truncated_mu = self.mu +math.sqrt(self.sigma)*math.sqrt(2/math.pi)
-        truncated_sigma =self.sigma*(math.sqrt(2/math.pi)-2/math.pi)
+        alpha = -self.mu /self.sigma
+        lambda_alpha =norm.pdf(alpha)/(1-norm.cdf(alpha))
+        truncated_mu = self.mu +self.sigma*lambda_alpha
+        
+        truncated_sigma =math.sqrt(self.sigma**2*(1 - lambda_alpha*(lambda_alpha-alpha)))
         return truncated_mu, truncated_sigma
 
     def get_optimal_price(self):
@@ -32,11 +35,13 @@ class SimpleSimulation():
         Computes the optimal price given the underlying distribution
         (optimal price is the price that maximizes revenue)
         """
+        
         res = scipy.optimize.minimize(self.compute_revenue, self.mu, method='nelder-mead')
         return res.x[0]
 
     def compute_revenue(self, p):
-        return -(p/(self.mu**2*scipy.stats.norm.cdf(self.mu/self.sigma,loc=0, scale=1))*scipy.stats.norm.cdf((-p+self.mu)/self.sigma, loc=0, scale=1))
+        alpha = -self.mu /self.sigma
+        return -p*(1 -1/norm.cdf(-alpha)*(norm.cdf((p-self.mu)/self.sigma)-norm.cdf(alpha)) )
 
     def _simulate(self):
         """

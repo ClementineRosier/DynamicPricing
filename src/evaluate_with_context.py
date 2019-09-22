@@ -4,7 +4,7 @@ import scipy
 from scipy.stats import beta
 import math
 
-class EvaluateBandit():
+class EvaluateBanditContext():
 	"""
 	Evaluation of models through regret using the following formula:
 	pseudo-regret = TxE_p*(R) - T_p1xE_p1(R) - T_p2xE_p2(R) ...- T_pKE_pK(R)
@@ -20,23 +20,20 @@ class EvaluateBandit():
 	def __init__(self, bandit ,simulation):
 		self.k_p=bandit.k_p
 		self.compute_revenue=simulation.compute_revenue
-		self.exp_revenue= self._get_expected_revenue_arm()
-		self.best_action = np.argmax(self.exp_revenue) #arm with the highest expected revenue
-		self.best_price=self.k_p[self.best_action] #price to be played to maximize expected revenue
 		self.regret=[]
-	def _get_expected_revenue_arm(self):
+		self.regret_t=0
+	def _get_expected_revenue_arm(self,continuous_context, discrete_context):
 		"""
 		Compute the expected revenue for each arm
 		"""
-		return [-1*self.compute_revenue(p) for p in self.k_p ]
+		return [-1*self.compute_revenue(p,continuous_context, discrete_context) for p in self.k_p ]
 
-	def get_regret(self,n_obs):
+	def get_regret(self,n_obs,chosen_action,continuous_context, discrete_context):
 		"""
 		Compute pseudo regret of the model
 		"""
-
-		regret_t= np.sum(n_obs)*self.exp_revenue[self.best_action] - np.sum([n_obs[i]*self.exp_revenue[i] for i in range(len(self.k_p))])
-		self.regret.append(regret_t)
-		return regret_t
-		
-
+		exp_revenue= self._get_expected_revenue_arm(continuous_context, discrete_context)
+		best_action = np.argmax(exp_revenue)
+		self.regret_t+= exp_revenue[best_action] - exp_revenue[chosen_action]
+		self.regret.append(self.regret_t)
+		return self.regret_t

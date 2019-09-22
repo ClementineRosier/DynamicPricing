@@ -28,7 +28,7 @@ class BinomialBandit():
 
     def __init__(self, k_p, alpha_0, beta_0):
 
-        assert len(k_p) == len(alpha_0) == len(beta_0), "k_mu, k_sigman and k_p must all be same length" 
+        assert len(k_p) == len(alpha_0) == len(beta_0), "k_mu, k_sigma and k_p must all be same length" 
         self.k_p = k_p
         self.k = len(self.k_p)
         self.alpha_0 = np.array(alpha_0)
@@ -39,7 +39,6 @@ class BinomialBandit():
         self.alpha_n = np.array(self.alpha_0)
         self.beta_n = np.array(self.beta_0)
         print(f"BinomialBandit model instanciated with {self.k} arms.")
-
 
     def update(self, k, reward):
         """
@@ -90,3 +89,4 @@ class BinomialBandit():
         elif method == "random":
             self.action = np.random.randint(0,self.k)
         return 
+

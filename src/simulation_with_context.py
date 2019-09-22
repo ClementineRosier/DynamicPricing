@@ -36,3 +36,21 @@ class ContextualDemandSimulation():
         """
         sample = self._simulate(continuous_context, discrete_context)
         return int(sample >= p)
+
+    def get_optimal_price(self,continuous_context, discrete_context):
+        """
+        Computes the optimal price given the underlying distribution for a given context
+        (optimal price is the price that maximizes the expected revenue for a given context)
+        """
+        res = scipy.optimize.minimize(self.compute_revenue, self.mu_e, args=(continuous_context, discrete_context),method='nelder-mead')
+        return res.x[0]
+
+    def compute_revenue(self, p,continuous_context, discrete_context):
+        """
+        compute expected revenue for a given price and a given context
+         E(R|p,context)=E(p*Buy|p,context)=p*P(v>=p|context)=p*P(espilon >=p-context)
+                                                 = p*(1-P(epsilon<=p-context))
+        """    
+        context_impact=self._get_context_impact(continuous_context, discrete_context)
+
+        return -p*(1-(scipy.stats.norm.cdf(p-context_impact,loc=self.mu_e,scale=self.sigma_e)))

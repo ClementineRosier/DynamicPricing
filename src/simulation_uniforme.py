@@ -4,17 +4,19 @@ import scipy
 from scipy.stats import truncnorm
 import math
 
-class UniformeSimulation():
+class UniformSimulation():
     """
     Simple demand simulation class following a continuous uniform with support [a,b]
 
     Args : 
-        a(float) : lowest value of the distribution (by default =0)
-        b(float) : largest value fo the distribution (by default =1)
+        a(float) : lowest value of the distribution 
+        b(float) : largest value fo the distribution 
     """
     def __init__(self,a,b):
-        self.a=a
-        self.b=b
+        assert a >= 0
+        assert b >= a
+        self.a = a
+        self.b = b
         self.mu, self.sigma = self.mean_variance()
         self.optimal_price = self.get_optimal_price()
         self.max_revenue = self.compute_revenue(self.optimal_price)
@@ -24,7 +26,7 @@ class UniformeSimulation():
         Compute mean and std for truncated normal
         """
         mu = (self.a +self.b)/2
-        sigma = (self.a -self.b)**2/12
+        sigma = math.sqrt((self.a -self.b)**2/12)
         return mu, sigma
 
     def get_optimal_price(self):
