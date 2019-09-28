@@ -22,6 +22,7 @@ class EvaluateBanditContext():
 		self.compute_revenue=simulation.compute_revenue
 		self.regret=[]
 		self.regret_t=0
+		self.p_max = max(self.k_p)
 	def _get_expected_revenue_arm(self,continuous_context, discrete_context):
 		"""
 		Compute the expected revenue for each arm
@@ -34,6 +35,6 @@ class EvaluateBanditContext():
 		"""
 		exp_revenue= self._get_expected_revenue_arm(continuous_context, discrete_context)
 		best_action = np.argmax(exp_revenue)
-		self.regret_t+= exp_revenue[best_action] - exp_revenue[chosen_action]
+		self.regret_t+= 1/self.p_max *exp_revenue[best_action] - exp_revenue[chosen_action]
 		self.regret.append(self.regret_t)
 		return self.regret_t
