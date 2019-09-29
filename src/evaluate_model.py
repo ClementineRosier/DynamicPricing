@@ -36,8 +36,7 @@ class EvaluateBandit():
 		Compute pseudo regret of the model
 		"""
 
-		regret_t= 1/self.p_max *np.sum(n_obs)*self.exp_revenue[self.best_action] - np.sum([n_obs[i]*self.exp_revenue[i] for i in range(len(self.k_p))])
+		regret_t= 1/self.p_max *(np.sum(n_obs)*self.exp_revenue[self.best_action] - np.sum([n_obs[i]*self.exp_revenue[i]  for i in range(len(self.k_p))]))
 		self.regret.append(regret_t)
 		return regret_t
 		
-

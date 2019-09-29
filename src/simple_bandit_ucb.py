@@ -33,6 +33,7 @@ class UCBBandit():
         self.n_pos = np.repeat(0, self.k)
         self.n_obs = np.repeat(0, self.k) # number of trials for each arm
         self.p_max = max(self.k_p)
+        self.B=np.repeat(1.000000, self.k)
 
 
         print(f"BinomialBandit model for UCB instanciated with {self.k} arms.")
@@ -55,8 +56,11 @@ class UCBBandit():
         #if not tested we put by default the highest value possible ie pmax * 1
         """
         # compute upper bound
-        average_reward = self.k_p*np.nan_to_num(self.n_pos/(self.n_obs))/self.p_max
-        self.B= [1*(self.n_obs[i]!=0)*(average_reward[i]/+math.sqrt(2*math.log(np.sum(self.n_obs)+1)/self.n_obs[i])) + 1*(self.n_obs[i]==0)*1 for i in range(self.k)]
+        for i in range(self.k):
+            if self.n_obs[i] != 0:
+                self.B[i]=self.k_p[i]*(self.n_pos[i]/(self.n_obs[i]))/self.p_max+math.sqrt(2*math.log(np.sum(self.n_obs)+1)/self.n_obs[i])
+
+        #self.B= [1*(self.n_obs[i]!=0)*np.nan_to_num(average_reward[i]+math.sqrt(2*math.log(np.sum(self.n_obs)+1)/self.n_obs[i])) + 1*(self.n_obs[i]==0)*1 for i in range(self.k)]
         #select the highest
         return np.argmax(self.B)
 
@@ -79,7 +83,7 @@ class UCBBandit():
             return
         
         assert method is not None, "Provide a selection method" 
-        if method == "UCB":
+        if method == "ucb":
             self.action = self.ucb()
         elif method == "random":
             self.action = np.random.randint(0,self.k)
