@@ -5,7 +5,7 @@ from scipy.stats import truncnorm, invgamma
 import math
 
 
-class ContextBandit():
+class ContextBandit_gradient():
     """
     Implementation of a classic multi armed bandit problem for a price selection problem.
     Each arm is set to be a given price : the model estimates the reward probability for each arm
@@ -64,9 +64,13 @@ class ContextBandit():
 
         def objective(w):
             return 0.5*sum(q*(w-m)**2)+np.log(1+np.exp(-y*np.dot(w.T,context)))
+        
+        def gradient(w):
+            return q * (w - m) + -1 * y *  context * np.exp(-1 * y * w.dot(context)) / (1. + np.exp(-1 * y * w.dot(context))) #np.array([y[j] *  X[j] / (1. + np.exp(-1 * y[j] * w.dot(X[j]))) for j in range(y.shape[0])])
+
 
         initial_value = np.random.normal(m,q)
-        minimum = scipy.optimize.minimize(objective, initial_value)
+        minimum = scipy.optimize.minimize(objective,initial_value,jac=gradient,method="BFGS")
         # Update m and q
         self.m_n[k] = minimum.x
         z = minimum.x
