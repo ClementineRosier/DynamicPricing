@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import scipy
 from scipy.stats import truncnorm, invgamma
+from scipy import optimize
 import math
 
 
@@ -42,12 +43,12 @@ class ContextBandit():
 
         print(f"ContextBandit model instanciated with {self.k} arms.")
 
-    def get_objective_function(self, weight):
-        y=int(reward > 0)
-        q=self.q[k]
-        m=self.m[k]
-        context = self.context
-        return 0.5*q*(w-m)+math.log(1+math.exp(-y*np.dot(w.T,context)))
+    #def get_objective_function(self, weight):
+    #    y=int(reward > 0)
+    #    q=self.q[k]
+    #    m=self.m[k]
+    #    context = self.context
+    #    return 0.5*q*(w-m)+math.log(1+math.exp(-y*np.dot(w.T,context)))
     
     def update(self, reward, context):
         """
@@ -58,19 +59,20 @@ class ContextBandit():
             reward (float) : value of the observed reward
         """
         k = self.action
-        y = int(reward > 0)
+        y = int(reward > 0)-1*int(reward == 0)
         q = self.q_n[k]
         m = self.m_n[k]
 
         def objective(w):
-            return 0.5*sum(q*(w-m)**2)+np.log(1+np.exp(-y*np.dot(w.T,context)))
+            return 0.5*sum(q*(w-m)**2)+np.log(1+np.exp(-y*np.dot(w,context)))
 
-        initial_value = np.random.normal(m,q)
+        initial_value = np.random.normal(m,np.sqrt(1/q))
         minimum = scipy.optimize.minimize(objective, initial_value)
         # Update m and q
         self.m_n[k] = minimum.x
         z = minimum.x
-        self.q_n[k]= q + context**2*1/(1+np.exp(-np.dot(z.T, context)))*(1-1/(1+np.exp(-np.dot(z.T, context))))
+        p=1/(1+np.exp(-np.dot(z,context)))
+        self.q_n[k]= q + context**2 *p*(1-p)
         
 
 
@@ -81,9 +83,9 @@ class ContextBandit():
             int : argmax over sampling
         """
         # Sample weight
-        w = np.random.normal(self.m_n,self.q_n)
+        w = np.random.normal(self.m_n,np.sqrt(1/self.q_n))
         # compute theta*p for each arm
-        exp_r = self.k_p*(1+np.exp(-np.dot(w,context.T)))
+        exp_r = self.k_p*1/(1+np.exp(-np.dot(w,context.T)))
         return np.argmax(exp_r)
 
 
@@ -109,4 +111,4 @@ class ContextBandit():
             self.action = self.thompson_sampling(context)
         elif method == "random":
             self.action = np.random.randint(0,self.k)
-        return 
+        return

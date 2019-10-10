@@ -33,12 +33,12 @@ class UCBBandit():
         self.n_pos = np.repeat(0, self.k)
         self.n_obs = np.repeat(0, self.k) # number of trials for each arm
         self.p_max = max(self.k_p)
-        self.B=np.repeat(1.000000, self.k)
+        self.B=np.repeat(1.000000,self.k)
 
 
         print(f"BinomialBandit model for UCB instanciated with {self.k} arms.")
 
-    def update(self,k, reward):
+    def update(self,j, reward):
         """
         Update parameters, and notaby epsilon_n and average profit obtained per arm
 
@@ -46,8 +46,8 @@ class UCBBandit():
             k (int) : index of the arm played
             buy (int) : 1 if reward > 0, else 0
         """
-        self.n_obs[k] += 1
-        self.n_pos[k] += int(reward > 0)
+        self.n_obs[j] += 1
+        self.n_pos[j] += int(reward > 0)
 
 
     def ucb(self):
@@ -58,7 +58,10 @@ class UCBBandit():
         # compute upper bound
         for i in range(self.k):
             if self.n_obs[i] != 0:
-                self.B[i]=self.k_p[i]*(self.n_pos[i]/(self.n_obs[i]))/self.p_max+math.sqrt(2*math.log(np.sum(self.n_obs)+1)/self.n_obs[i])
+                #self.B[i]=self.k_p[i]*(self.n_pos[i]/(self.n_obs[i]))/self.p_max+math.sqrt(2*math.log(np.sum(self.n_obs)+1)/self.n_obs[i])
+                self.B[i]=self.k_p[i]*((self.n_pos[i]/(self.n_obs[i]))+math.sqrt(2*math.log(np.sum(self.n_obs)+1)/self.n_obs[i]))
+            elif self.n_obs[i] == 0:
+                self.B[i]=self.k_p[i]       
 
         #self.B= [1*(self.n_obs[i]!=0)*np.nan_to_num(average_reward[i]+math.sqrt(2*math.log(np.sum(self.n_obs)+1)/self.n_obs[i])) + 1*(self.n_obs[i]==0)*1 for i in range(self.k)]
         #select the highest

@@ -42,12 +42,12 @@ class ContextBandit_gradient():
 
         print(f"ContextBandit model instanciated with {self.k} arms.")
 
-    def get_objective_function(self, weight):
-        y=int(reward > 0)
-        q=self.q[k]
-        m=self.m[k]
-        context = self.context
-        return 0.5*q*(w-m)+math.log(1+math.exp(-y*np.dot(w.T,context)))
+    #def get_objective_function(self, weight):
+     #   y=int(reward > 0)
+      #  q=self.q[k]
+      #  m=self.m[k]
+     #   context = self.context
+      #  return 0.5*q*(w-m)+math.log(1+math.exp(-y*np.dot(w.T,context)))
     
     def update(self, reward, context):
         """
@@ -63,13 +63,13 @@ class ContextBandit_gradient():
         m = self.m_n[k]
 
         def objective(w):
-            return 0.5*sum(q*(w-m)**2)+np.log(1+np.exp(-y*np.dot(w.T,context)))
+            return 0.5*sum(q*(w-m)**2)+np.log(1+np.exp(-y*np.dot(w,context)))
         
         def gradient(w):
             return q * (w - m) + -1 * y *  context * np.exp(-1 * y * w.dot(context)) / (1. + np.exp(-1 * y * w.dot(context))) #np.array([y[j] *  X[j] / (1. + np.exp(-1 * y[j] * w.dot(X[j]))) for j in range(y.shape[0])])
 
 
-        initial_value = np.random.normal(m,q)
+        initial_value = np.random.normal(m,np.sqrt(1/q))
         minimum = scipy.optimize.minimize(objective,initial_value,jac=gradient,method="BFGS")
         # Update m and q
         self.m_n[k] = minimum.x
@@ -85,7 +85,7 @@ class ContextBandit_gradient():
             int : argmax over sampling
         """
         # Sample weight
-        w = np.random.normal(self.m_n,self.q_n)
+        w = np.random.normal(self.m_n,np.sqrt(1/self.q_n))
         # compute theta*p for each arm
         exp_r = self.k_p*(1+np.exp(-np.dot(w,context.T)))
         return np.argmax(exp_r)
