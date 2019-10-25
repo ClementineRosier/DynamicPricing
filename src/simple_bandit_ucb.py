@@ -58,10 +58,10 @@ class UCBBandit():
         # compute upper bound
         for i in range(self.k):
             if self.n_obs[i] != 0:
-                #self.B[i]=self.k_p[i]*(self.n_pos[i]/(self.n_obs[i]))/self.p_max+math.sqrt(2*math.log(np.sum(self.n_obs)+1)/self.n_obs[i])
-                self.B[i]=self.k_p[i]*((self.n_pos[i]/(self.n_obs[i]))+math.sqrt(2*math.log(np.sum(self.n_obs)+1)/self.n_obs[i]))
+                #use of log to limit scale effect and improve performance and balance bewteen right and left side
+                self.B[i]=math.log(self.k_p[i])/math.log(self.p_max)*(self.n_pos[i]/self.n_obs[i])+math.sqrt(2*math.log(np.sum(self.n_obs)+1)/self.n_obs[i])
             elif self.n_obs[i] == 0:
-                self.B[i]=self.k_p[i]       
+                self.B[i]=1 
 
         #self.B= [1*(self.n_obs[i]!=0)*np.nan_to_num(average_reward[i]+math.sqrt(2*math.log(np.sum(self.n_obs)+1)/self.n_obs[i])) + 1*(self.n_obs[i]==0)*1 for i in range(self.k)]
         #select the highest
