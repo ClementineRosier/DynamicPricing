@@ -5,7 +5,7 @@ from scipy.stats import beta
 import math
 
 
-class GreedyBandit():
+class PureGreedyBandit():
     """
     Implementation of a classic multi armed bandit problem for a price selection problem.
     Each arm represent a different price. If arm n (corresponding to price p) is chosen
@@ -18,25 +18,22 @@ class GreedyBandit():
         - alpha_n = alpha_0 + sum(buy) = alpha_0 + sum(positive_occurrences)
         - beta_n = beta_0 + n - sum(buy)  = beta_0 + sum(negative_occurrences)
 
-    Action selection policy : epsilon-greedy (cf Auer 2002)
+    Action selection policy : epsilon_t-greedy (cf Auer 2002)
 
     Args : 
         k_p(list) : list of size k (number of arms) defining the price for each arm
-        d (integer) : strictly positive and must be smaller than the difference between expected profit with optimal price and the expected profit of any other price
-        c (inter) : strictly positive
     """
 
-    def __init__(self, k_p, d, c):
+    def __init__(self, k_p):
 
         self.k_p = k_p
         self.k = len(self.k_p)
-        self.d = d
-        self.c = c
+
         self.n_pos = np.repeat(0, self.k)
         self.n_obs = np.repeat(0, self.k) # number of trials for each arm
-        self.epsilon =1
 
-        print(f"BinomialBandit model for espilon-greedy instanciated with {self.k} arms.")
+
+        print(f"BinomialBandit model for pure greedy instanciated with {self.k} arms.")
 
     def update(self,k, reward):
         """
@@ -48,22 +45,15 @@ class GreedyBandit():
         """
         self.n_obs[k] += 1
         self.n_pos[k] += int(reward > 0)
-        self.epsilon = min(1 , self.c*self.k/(self.d**2*np.sum(self.n_obs)))
 
     def epsilon_greedy(self):
         """
-        Select with proba Epsilon_n a random arm and otherwise the arm with the highest average reward
+        Always select the arm with the highest average reward
         """
-        # Wich random selection ? Bernouilli ( Epsilon)
-        random_selection = np.random.binomial(1,self.epsilon)
-        #print(self.epsilon)
-        #print(random_selection)
-        if random_selection == 1:
-            #selct randomly an arm
-            return np.random.randint(0,self.k)
-        else:
-            average_reward = self.k_p*np.nan_to_num(self.n_pos/(self.n_obs))
-            return np.argmax(average_reward)
+        
+        
+        average_reward = self.k_p*np.nan_to_num(self.n_pos/(self.n_obs))
+        return np.argmax(average_reward)
 
 
     def chose_action(self, method = "greedy", force_action = None):
